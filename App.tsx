@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { UserInputForm } from './components/UserInputForm';
 import { LeadsDisplay } from './components/LeadsDisplay';
@@ -69,8 +70,8 @@ const App: React.FC = () => {
       const newSearchData: SavedSearch = {
         id: idToUse,
         timestamp: Date.now(),
-        userInput: currentInput,
-        leads: currentLeads,
+        userInput: currentInput, // UserInput now includes serviceUrl
+        leads: currentLeads, // ProcessedLead now includes groundingMetadata
         summary: `${currentInput.targetAudience.substring(0, 30)} in ${currentInput.targetArea.substring(0, 25)} for ${currentInput.serviceDescription.substring(0,20)}...`,
       };
 
@@ -153,11 +154,16 @@ const App: React.FC = () => {
 
       try {
         updateLeadState(lead.id, { status: 'fetching_details' });
-        const detailsData = await fetchLeadDetails(lead.name, currentInput.serviceDescription, currentInput.targetAudience);
-        updateLeadState(lead.id, { details: detailsData.details, status: 'fetching_email' });
+        // fetchLeadDetails now returns an object with details and groundingMetadata
+        const detailsData = await fetchLeadDetails(lead.name, currentInput); 
+        updateLeadState(lead.id, { 
+            details: detailsData.details, 
+            groundingMetadata: detailsData.groundingMetadata, // Store grounding metadata
+            status: 'fetching_email' 
+        });
 
         try {
-          const emailData = await fetchEmailDraft(lead.name, detailsData.details, currentInput.serviceDescription, currentInput.targetAudience);
+          const emailData = await fetchEmailDraft(lead.name, detailsData.details, currentInput); 
           updateLeadState(lead.id, {
             emailSubject: emailData.subject,
             emailBody: emailData.body,
@@ -198,7 +204,7 @@ const App: React.FC = () => {
   }, [updateLeadState, appPhase, isApiKeyValidated]);
 
   const handleFormSubmit = useCallback(async (data: UserInput) => {
-    setUserInput(data);
+    setUserInput(data); 
     setLeads([]);
     setGlobalError(null);
     setApiKeyError(null);
@@ -206,11 +212,12 @@ const App: React.FC = () => {
     setAppPhase(AppPhase.LOADING_INITIAL_LEADS);
 
     try {
-      const initialLeadNames = await fetchInitialLeads(data.targetArea, data.targetAudience, data.serviceDescription);
+      const initialLeadNames = await fetchInitialLeads(data); 
       const initialLeadsData: ProcessedLead[] = initialLeadNames.map(rawLead => ({
         id: crypto.randomUUID(),
         name: rawLead.name,
         status: 'initial',
+        // groundingMetadata will be added during enrichment phase for each lead
       }));
       setLeads(initialLeadsData); 
       
@@ -222,7 +229,7 @@ const App: React.FC = () => {
       if (initialLeadsData.length > 0) {
         await processLeadEnrichment(initialLeadsData, data);
       } else {
-        setGlobalError("No potential leads were generated. Try broadening your criteria.");
+        setGlobalError("No potential leads were generated. Try broadening your criteria. (Note: Search grounding is active, results depend on real web data).");
         setAppPhase(AppPhase.DASHBOARD); 
       }
     } catch (error) {
@@ -270,14 +277,14 @@ const App: React.FC = () => {
   const handleLoadSearch = (searchId: string) => {
     const searchToLoad = savedSearches.find(s => s.id === searchId);
     if (searchToLoad) {
-      setUserInput(searchToLoad.userInput);
-      setLeads(searchToLoad.leads);
+      setUserInput(searchToLoad.userInput); 
+      setLeads(searchToLoad.leads); // Leads will now include groundingMetadata
       setCurrentSearchId(searchToLoad.id);
       const isFullyProcessed = searchToLoad.leads.every(l => l.status === 'completed' || l.status.startsWith('error_'));
       setAppPhase(isFullyProcessed ? AppPhase.RESULTS_DISPLAYED : AppPhase.PROCESSING_LEAD_ENRICHMENT);
       
       if (searchToLoad.leads.some(l => l.status === 'fetching_details' || l.status === 'fetching_email' || l.status === 'initial')) {
-         setAppPhase(AppPhase.RESULTS_DISPLAYED); // Keep as results display for now, can be enhanced to resume
+         setAppPhase(AppPhase.RESULTS_DISPLAYED); 
       } else {
          setAppPhase(AppPhase.RESULTS_DISPLAYED);
       }
@@ -333,7 +340,7 @@ const App: React.FC = () => {
                 <InfoIcon className="w-7 h-7 text-sky-400 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-sky-200 text-lg">New Research Project</h3>
-                  <p className="text-slate-300">Provide details about your service, target area, and audience. Gemini will help generate potential leads, gather insights, and draft personalized outreach emails.</p>
+                  <p className="text-slate-300">GEMCOA will use Google Search to find real companies and information. Provide details about your service (you can also include a URL and upload a document), target area, and audience. GEMCOA will help generate potential leads, gather insights, and draft personalized outreach emails.</p>
                 </div>
               </div>
             )}
@@ -359,9 +366,9 @@ const App: React.FC = () => {
       case AppPhase.LOADING_INITIAL_LEADS:
         return ( 
           <div className="text-center p-10 animate-fadeIn flex flex-col items-center justify-center min-h-[300px]">
-            <LoadingSpinner size="lg" color="bg-sky-500" />
-            <p className="mt-6 text-2xl font-semibold text-sky-300">Generating initial leads...</p>
-            <p className="text-slate-400">Gemini is crafting possibilities. This may take a few moments.</p>
+            <LoadingSpinner size="lg" color="text-sky-400" /> 
+            <p className="mt-6 text-2xl font-semibold text-sky-300">Searching the web for initial leads...</p>
+            <p className="text-slate-400">Gemini is using Google Search to find real businesses. This may take a few moments.</p>
             {userInput && <p className="text-sm text-slate-500 mt-3">For: {userInput.targetAudience} in {userInput.targetArea}</p>}
           </div>
         );
@@ -372,11 +379,15 @@ const App: React.FC = () => {
             {userInput && (
               <div className="mb-10 p-6 sm:p-8 bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-xl">
                 <h2 className="text-3xl font-bold text-sky-400 mb-4">Research: <span className="text-sky-300">{userInput.targetAudience}</span> in <span className="text-sky-300">{userInput.targetArea}</span></h2>
-                <p className="text-slate-300 text-lg"><strong className="font-medium text-sky-300/80">Your Service:</strong> {userInput.serviceDescription}</p>
+                <div className="text-slate-300 text-lg space-y-2">
+                    <p><strong className="font-medium text-sky-300/80">Your Service Description:</strong> {userInput.serviceDescription}</p>
+                    {userInput.serviceUrl && <p><strong className="font-medium text-sky-300/80">Your Business URL:</strong> <a href={userInput.serviceUrl} target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">{userInput.serviceUrl}</a></p>}
+                </div>
+
                 {appPhase === AppPhase.PROCESSING_LEAD_ENRICHMENT && (
                    <div className="mt-5 flex items-center text-amber-400">
-                     <LoadingSpinner size="sm" color="bg-amber-500"/> 
-                     <span className="ml-3 text-lg">Enriching leads with personalized info & emails...</span>
+                     <LoadingSpinner size="sm" color="text-amber-400"/>  
+                     <span className="ml-3 text-lg">Searching for details & drafting emails...</span>
                    </div>
                 )}
               </div>
@@ -406,7 +417,7 @@ const App: React.FC = () => {
       {/* Subtle gradient background for the page */}
       <div className="absolute inset-0 -z-10 h-full w-full bg-black bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:32px_32px]"></div>
 
-      <div className="w-full max-w-5xl z-10"> {/* Increased max-width for more spacious feel */}
+      <div className="w-full max-w-5xl z-10"> 
         <Header />
         <main className="mt-10 sm:mt-12">
           {globalError && appPhase !== AppPhase.AWAITING_API_KEY && appPhase !== AppPhase.FATAL_ERROR && (

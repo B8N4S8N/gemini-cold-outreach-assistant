@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ProcessedLead } from '../types';
 import { LoadingSpinner } from './LoadingSpinner';
-import { CopyIcon, CheckIcon, ErrorIcon, LightbulbIcon, EmailIcon } from './icons';
+import { CopyIcon, CheckIcon, ErrorIcon, LightbulbIcon, EmailIcon, LinkIcon as SourceLinkIcon } from './icons'; // Renamed LinkIcon to SourceLinkIcon for clarity
 
 interface LeadCardProps {
   lead: ProcessedLead;
@@ -25,7 +25,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
     switch(lead.status) {
       case 'initial':
       case 'fetching_details':
-        return <div className="flex items-center text-xs text-amber-400"><LoadingSpinner size="xs" /><span className="ml-1">Fetching details...</span></div>;
+        return <div className="flex items-center text-xs text-amber-400"><LoadingSpinner size="xs" /><span className="ml-1">Searching & Fetching details...</span></div>;
       case 'fetching_email':
         return <div className="flex items-center text-xs text-amber-400"><LoadingSpinner size="xs" /><span className="ml-1">Drafting email...</span></div>;
       case 'completed':
@@ -70,6 +70,32 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         </div>
       )}
 
+      {lead.groundingMetadata && lead.groundingMetadata.groundingChunks && lead.groundingMetadata.groundingChunks.length > 0 && (
+        <div className="p-5 sm:p-6 border-b border-slate-700">
+          <h4 className="text-md font-semibold text-sky-300 mb-2 flex items-center">
+            <SourceLinkIcon className="w-5 h-5 mr-2 text-slate-400" />
+            Sources Found:
+          </h4>
+          <ul className="space-y-1 text-slate-400 text-xs pl-2">
+            {lead.groundingMetadata.groundingChunks.map((chunk, index) => (
+              chunk.web && (
+                <li key={index} className="truncate">
+                  <a 
+                    href={chunk.web.uri} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    title={chunk.web.uri}
+                    className="hover:text-sky-400 hover:underline"
+                  >
+                    {chunk.web.title || chunk.web.uri}
+                  </a>
+                </li>
+              )
+            ))}
+          </ul>
+        </div>
+      )}
+
       {lead.emailSubject && lead.emailBody && (
         <div className="p-5 sm:p-6">
           <h4 className="text-md font-semibold text-sky-300 mb-3 flex items-center">
@@ -99,7 +125,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         <div className="p-5 sm:p-6 text-center">
           <LoadingSpinner />
           <p className="mt-2 text-sm text-slate-400">
-            {lead.status === 'fetching_details' ? 'Gathering insights...' : 'Crafting email...'}
+            {lead.status === 'fetching_details' ? 'Gathering insights from the web...' : 'Crafting email...'}
           </p>
         </div>
       )}
