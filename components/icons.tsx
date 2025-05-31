@@ -111,3 +111,23 @@ export const XCircleIcon: React.FC<IconProps> = ({ className }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
+
+export const UserCircleIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+export const BriefcaseIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.098A2.25 2.25 0 0118 20.502H6A2.25 2.25 0 013.75 18.25V6.25A2.25 2.25 0 016 4h12A2.25 2.25 0 0120.25 6.25v7.9z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v.003L12 10.5l-8.25 3.653v-.003M12 10.5V4.15M12 10.5v3.75m0-3.75L12 4.15m0 0L12 4.15M12 4.15L12 4.15M6 12v.75a6.006 6.006 0 0012 0V12" />
+  </svg>
+);
+
+export const PhoneIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.018-.991-.053-1.466l-.094-.58c-.084-.52-.532-.928-1.073-.928H18.375c-.542 0-1.01.326-1.248.822l-.096.202c-.142.297-.406.51-.723.51-.317 0-.58-.213-.722-.51l-.097-.202c-.238-.496-.706-.822-1.248-.822H13.5c-.542 0-1.01.326-1.248.822l-.096.202c-.142.297-.406.51-.723.51-.317 0-.58-.213-.722-.51l-.097-.202c-.238-.496-.706-.822-1.248-.822H5.625c-.542 0-1.01.326-1.248.822l-.096.202c-.142.297-.406.51-.723.51-.317 0-.58-.213-.722-.51l-.097-.202c-.238-.496-.706-.822-1.248-.822H2.25V6.75z" />
+  </svg>
+);
+

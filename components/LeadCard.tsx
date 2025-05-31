@@ -2,7 +2,10 @@
 import React, { useState } from 'react';
 import { ProcessedLead } from '../types';
 import { LoadingSpinner } from './LoadingSpinner';
-import { CopyIcon, CheckIcon, ErrorIcon, LightbulbIcon, EmailIcon, LinkIcon as SourceLinkIcon } from './icons'; // Renamed LinkIcon to SourceLinkIcon for clarity
+import { 
+  CopyIcon, CheckIcon, ErrorIcon, LightbulbIcon, EmailIcon, 
+  LinkIcon as SourceLinkIcon, UserCircleIcon, BriefcaseIcon, PhoneIcon 
+} from './icons';
 
 interface LeadCardProps {
   lead: ProcessedLead;
@@ -70,6 +73,50 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         </div>
       )}
 
+      {lead.contacts && lead.contacts.length > 0 && (
+        <div className="p-5 sm:p-6 border-b border-slate-700">
+          <h4 className="text-md font-semibold text-sky-300 mb-3 flex items-center">
+            <UserCircleIcon className="w-5 h-5 mr-2 text-slate-400" />
+            Contact Information:
+          </h4>
+          <div className="space-y-3">
+            {lead.contacts.map((contact, index) => (
+              <div key={index} className={`p-3 rounded-md ${contact.isPrimary ? 'bg-sky-700/30 border border-sky-600' : 'bg-slate-700/50'}`}>
+                <div className="flex items-center mb-1">
+                  <UserCircleIcon className={`w-4 h-4 mr-2 ${contact.isPrimary ? 'text-sky-300' : 'text-slate-300'}`} />
+                  <p className={`text-sm font-medium ${contact.isPrimary ? 'text-sky-200' : 'text-slate-200'}`}>
+                    {contact.name || 'N/A'}
+                    {contact.isPrimary && <span className="ml-2 text-xs font-normal bg-sky-500 text-white px-1.5 py-0.5 rounded-full">Primary</span>}
+                  </p>
+                </div>
+                {contact.role && (
+                  <div className="flex items-center text-xs text-slate-400 mb-0.5 ml-1">
+                    <BriefcaseIcon className="w-3 h-3 mr-1.5 text-slate-500" />
+                    {contact.role}
+                  </div>
+                )}
+                {contact.email && (
+                  <div className="flex items-center text-xs text-slate-400 mb-0.5 ml-1">
+                    <EmailIcon className="w-3 h-3 mr-1.5 text-slate-500" />
+                    <a href={`mailto:${contact.email}`} className="hover:text-sky-400 hover:underline break-all">
+                      {contact.email}
+                    </a>
+                  </div>
+                )}
+                {contact.phone && (
+                  <div className="flex items-center text-xs text-slate-400 ml-1">
+                    <PhoneIcon className="w-3 h-3 mr-1.5 text-slate-500" />
+                     <a href={`tel:${contact.phone}`} className="hover:text-sky-400 hover:underline">
+                        {contact.phone}
+                     </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {lead.groundingMetadata && lead.groundingMetadata.groundingChunks && lead.groundingMetadata.groundingChunks.length > 0 && (
         <div className="p-5 sm:p-6 border-b border-slate-700">
           <h4 className="text-md font-semibold text-sky-300 mb-2 flex items-center">
@@ -121,11 +168,11 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         </div>
       )}
       
-      {(lead.status === 'fetching_details' || lead.status === 'fetching_email') && (!lead.details || lead.details.length === 0) && (
+      {(lead.status === 'fetching_details' || lead.status === 'fetching_email') && (!lead.details || lead.details.length === 0) && (!lead.contacts || lead.contacts.length === 0) && (
         <div className="p-5 sm:p-6 text-center">
           <LoadingSpinner />
           <p className="mt-2 text-sm text-slate-400">
-            {lead.status === 'fetching_details' ? 'Gathering insights from the web...' : 'Crafting email...'}
+            {lead.status === 'fetching_details' ? 'Gathering insights & contacts from the web...' : 'Crafting email...'}
           </p>
         </div>
       )}

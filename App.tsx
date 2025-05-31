@@ -158,12 +158,13 @@ const App: React.FC = () => {
         const detailsData = await fetchLeadDetails(lead.name, currentInput); 
         updateLeadState(lead.id, { 
             details: detailsData.details, 
+            contacts: detailsData.contacts, // Store contacts as well
             groundingMetadata: detailsData.groundingMetadata, // Store grounding metadata
             status: 'fetching_email' 
         });
 
         try {
-          const emailData = await fetchEmailDraft(lead.name, detailsData.details, currentInput); 
+          const emailData = await fetchEmailDraft(lead.name, detailsData.details, detailsData.contacts, currentInput); 
           updateLeadState(lead.id, {
             emailSubject: emailData.subject,
             emailBody: emailData.body,

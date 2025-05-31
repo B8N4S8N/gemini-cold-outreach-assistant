@@ -25,9 +25,18 @@ export interface GroundingMetadata {
   // Other metadata fields
 }
 
+export interface ContactInfo {
+  name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  isPrimary?: boolean; // Indicates if this is the suggested primary contact
+}
+
 export interface LeadDetailsFromAPI {
   details: string[];
-  groundingMetadata?: GroundingMetadata; // Added for search grounding
+  contacts?: ContactInfo[]; // Added to store contact information
+  groundingMetadata?: GroundingMetadata;
 }
 
 export interface EmailContentFromAPI {
@@ -42,9 +51,10 @@ export interface ProcessedLead {
   status: 'initial' | 'fetching_details' | 'fetching_email' | 'completed' | 'error_details' | 'error_email';
   errorMessage?: string;
   details?: string[];
+  contacts?: ContactInfo[]; // Added to store contact information
   emailSubject?: string;
   emailBody?: string;
-  groundingMetadata?: GroundingMetadata; // Added for search grounding
+  groundingMetadata?: GroundingMetadata;
 }
 
 export enum AppPhase {
@@ -60,7 +70,7 @@ export enum AppPhase {
 export interface SavedSearch {
   id: string;
   timestamp: number;
-  userInput: UserInput; // UserInput now includes serviceUrl
-  leads: ProcessedLead[]; // ProcessedLead now includes groundingMetadata
+  userInput: UserInput;
+  leads: ProcessedLead[]; // ProcessedLead now includes contacts and groundingMetadata
   summary: string;
 }
